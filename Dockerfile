@@ -129,12 +129,9 @@ RUN useradd -m $ASTERISKUSER \
 #Make CDRs work
 COPY ssmtp.conf /etc/ssmtp/
 COPY groupmwi.sh /usr/bin/
-COPY conf/cdr/odbc.ini /etc/odbc.ini
-COPY conf/cdr/odbcinst.ini /etc/odbcinst.ini
-COPY conf/cdr/cdr_adaptive_odbc.conf /etc/asterisk/cdr_adaptive_odbc.conf
-RUN chown asterisk:asterisk /etc/asterisk/cdr_adaptive_odbc.conf \
-	&& chmod 775 /etc/asterisk/cdr_adaptive_odbc.conf \
-	&& rm -rf /usr/sbin/sendmail \
+COPY odbc.ini /etc/odbc.ini
+COPY odbcinst.ini /etc/odbcinst.ini
+RUN rm -rf /usr/sbin/sendmail \
         && ln -s /usr/sbin/ssmtp /usr/sbin/sendmail
 
 WORKDIR /
