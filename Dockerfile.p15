@@ -72,25 +72,29 @@ RUN curl -sf -o pjproject.tar.bz2 -L http://www.pjsip.org/release/2.4/pjproject-
 # Compile and Install Asterisk
 WORKDIR /usr/src
 
-RUN curl -sf -o asterisk.tar.gz -L http://downloads.asterisk.org/pub/telephony/asterisk/releases/asterisk-15.1.5.tar.gz \
+RUN curl -sf -o asterisk.tar.gz -L http://downloads.asterisk.org/pub/telephony/asterisk/asterisk-15-current.tar.gz \
 	&& mkdir asterisk \
 	&& tar -xzf /usr/src/asterisk.tar.gz -C /usr/src/asterisk --strip-components=1 \
 	&& rm asterisk.tar.gz \
 	&& cd asterisk
 
-COPY cisco-usecallmanager-15.1.5.patch /usr/src/
+COPY cisco-usecallmanager-15.0.patch /usr/src/
 
 RUN cd /usr/src/asterisk \
-	&& patch -p1 -s < /usr/src/cisco-usecallmanager-15.1.5.patch
+	&& patch -p1 -s < /usr/src/cisco-usecallmanager-15.0.patch
+
+COPY chan_sip.c.15p /usr/src/asterisk/channels/chan_sip.c
+COPY irc2pc.c.15p /usr/src/asterisk/codecs/lpc10/irc2pc.c
 
 RUN cd /usr/src/asterisk \
         && mkdir /etc/asterisk \
 	&& ./configure \
-        &&  contrib/scripts/get_mp3_source.sh \
+	&& contrib/scripts/get_mp3_source.sh \
 	&& make menuselect.makeopts \
 	&& sed -i "s/format_mp3//" menuselect.makeopts \
 	&& sed -i "s/BUILD_NATIVE//" menuselect.makeopts \
 	&& make \
+	&& make basic-pbx \
 	&& make install \
 	&& make config \
 	&& ldconfig \
@@ -120,14 +124,20 @@ RUN useradd -m $ASTERISKUSER \
 	&& chown -R $ASTERISKUSER. /var/lib/asterisk \
 	&& chown -R $ASTERISKUSER. /var/log/asterisk \
 	&& chown -R $ASTERISKUSER. /var/spool/asterisk \
-	&& chown -R $ASTERISKUSER. /usr/lib/asterisk 
+	&& chown -R $ASTERISKUSER. /usr/lib/asterisk \
+	&& chown -R $ASTERISKUSER. /var/www/ \
+	&& chown -R $ASTERISKUSER. /var/www/* \
+	&& rm -rf /var/www/html
 
 #Make CDRs work
 COPY ssmtp.conf /etc/ssmtp/
 COPY groupmwi.sh /usr/bin/
-COPY odbc.ini /etc/odbc.ini
-COPY odbcinst.ini /etc/odbcinst.ini
-RUN rm -rf /usr/sbin/sendmail \
+COPY conf/cdr/odbc.ini /etc/odbc.ini
+COPY conf/cdr/odbcinst.ini /etc/odbcinst.ini
+COPY conf/cdr/cdr_adaptive_odbc.conf /etc/asterisk/cdr_adaptive_odbc.conf
+RUN chown asterisk:asterisk /etc/asterisk/cdr_adaptive_odbc.conf \
+	&& chmod 775 /etc/asterisk/cdr_adaptive_odbc.conf \
+	&& rm -rf /usr/sbin/sendmail \
         && ln -s /usr/sbin/ssmtp /usr/sbin/sendmail
 
 WORKDIR /
