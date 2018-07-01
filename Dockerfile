@@ -39,7 +39,7 @@ COPY ./odbc.ini /etc/
 COPY ./odbcinst.ini /etc/
 COPY ./ssmtp.conf /etc/ssmtp/
 COPY ./groupmwi.sh /usr/bin/
-COPY ./keys /var/lib/asterisk/
+COPY ./keys /var/lib/asterisk/keys
 
 RUN rm -rf /usr/sbin/sendmail;\
     ln -s /usr/sbin/ssmtp /usr/sbin/sendmail
