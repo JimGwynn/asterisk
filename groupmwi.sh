@@ -10,6 +10,6 @@ VM_COUNT=$3
 ASTCMD="/usr/sbin/asterisk -rx"
 
 logger -t groupmwi "Checking Group mailbox message"
-$ASTCMD "originate Local/s@groupmwi-check extension 4@default"
+$ASTCMD "channel originate Local/s@groupmwi-check extension 4@default"
 
 exit 0

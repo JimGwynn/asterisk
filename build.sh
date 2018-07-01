@@ -1,1 +1,1 @@
-docker build -t freepbx .
+docker build -t asterisk .
