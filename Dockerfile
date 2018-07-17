@@ -3,7 +3,7 @@ MAINTAINER Jim Gwynn jim.gwynn@bakStaaJ.com
 
 RUN apt-get update \
    && apt-get -y remove sendmail \
-   && DEBIAN_FRONTEND=noninteractive apt-get -y install curl build-essential ntp ssmtp unixodbc-dev libvpb1 libssl-dev libsrtp0-dev nano
+   && DEBIAN_FRONTEND=noninteractive apt-get -y install curl build-essential ntp ssmtp unixodbc-dev libvpb1 libssl-dev libsrtp0-dev nano sox libsox-fmt-mp3 awscli
 
 COPY ./mysql-connector-odbc-5.3.10-linux-ubuntu16.04-x86-64bit.tar.gz /tmp/
 
@@ -35,15 +35,22 @@ RUN cd /tmp/asterisk/ \
     && make samples \
     && make config
 
+
 COPY ./odbc.ini /etc/
 COPY ./odbcinst.ini /etc/
 COPY ./ssmtp.conf /etc/ssmtp/
 COPY ./groupmwi.sh /usr/bin/
-COPY ./keys /var/lib/asterisk/keys
+COPY ./etc/ /etc/asterisk/
 
-RUN rm -rf /usr/sbin/sendmail;\
-    ln -s /usr/sbin/ssmtp /usr/sbin/sendmail
+RUN rm -rf /usr/sbin/sendmail \
+    && ln -s /usr/sbin/ssmtp /usr/sbin/sendmail
+
+RUN mv /var/lib/asterisk/sounds/en /var/lib/asterisk/sounds/en.bak \
+    && ln -s /etc/asterisk/salli/ /var/lib/asterisk/sounds/en
+
+COPY ./aws/ /root/.aws
+COPY ./entrypoint.sh /root
 
 VOLUME ["/etc/asterisk"]
 
-CMD ["/usr/sbin/asterisk","-c"]
+CMD ["/root/entrypoint.sh"]
